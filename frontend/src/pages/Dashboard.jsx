@@ -8,6 +8,8 @@ import {
 import { useDropzone } from 'react-dropzone';
 import API from '../api/axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://cloud-drive-saa-s.onrender.com';
+
 export default function Dashboard() {
   const { logout, user } = useAuth();
   const [activeTab, setActiveTab] = useState('drive');
@@ -180,7 +182,11 @@ export default function Dashboard() {
     e.preventDefault();
     try {
       const res = await API.post(`/files/${shareFileItem.id}/share?expirationDays=${expiryDays}&password=${sharePassword}`);
-      setGeneratedShareUrl(res.data?.shareUrl || '');
+      const rawUrl = res.data?.shareUrl || '';
+      const formattedUrl = rawUrl.includes('localhost')
+        ? rawUrl.replace(/http:\/\/localhost:\d+/, window.location.origin)
+        : rawUrl;
+      setGeneratedShareUrl(formattedUrl);
       setSharePassword('');
     } catch (err) {
       alert('Failed to generate share link');
@@ -673,9 +679,9 @@ export default function Dashboard() {
             
             <div className="flex-1 p-4 overflow-auto flex items-center justify-center bg-[#090b16]">
               {previewFileItem.mimeType?.startsWith('image/') ? (
-                <img src={`http://localhost:8080/api/files/${previewFileItem.id}/preview`} alt={previewFileItem.name} className="max-h-[60vh] object-contain rounded-xl" />
+                <img src={`${API_BASE_URL}/api/files/${previewFileItem.id}/preview`} alt={previewFileItem.name} className="max-h-[60vh] object-contain rounded-xl" />
               ) : previewFileItem.mimeType === 'application/pdf' ? (
-                <iframe src={`http://localhost:8080/api/files/${previewFileItem.id}/preview`} title={previewFileItem.name} className="w-full h-[60vh] rounded-xl border border-purple-900/30" />
+                <iframe src={`${API_BASE_URL}/api/files/${previewFileItem.id}/preview`} title={previewFileItem.name} className="w-full h-[60vh] rounded-xl border border-purple-900/30" />
               ) : (
                 <div className="text-center py-12 text-gray-400">
                   <FileText size={48} className="mx-auto mb-2 opacity-30 text-purple-400" />
