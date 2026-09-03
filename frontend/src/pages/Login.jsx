@@ -7,16 +7,27 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
       await login(email, password);
-      navigate('/');
+      // Fixed: Redirect to '/dashboard' instead of '/'
+      navigate('/dashboard');
     } catch (err) {
-      setError('Invalid email or password');
+      console.error('Login error:', err);
+      const errMsg = typeof err.response?.data === 'string' 
+        ? err.response.data 
+        : err.response?.data?.message || 'Invalid email or password';
+      setError(errMsg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -118,9 +129,10 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-600/25 transition-all duration-200"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-600/25 transition-all duration-200 disabled:opacity-50"
             >
-              <span>Sign In</span>
+              <span>{loading ? 'Signing in...' : 'Sign In'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
